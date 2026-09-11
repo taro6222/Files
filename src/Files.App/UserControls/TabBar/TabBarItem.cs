@@ -1,0 +1,196 @@
+// Copyright (c) Files Community
+// Licensed under the MIT License.
+
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
+
+namespace Files.App.UserControls.TabBar
+{
+	/// <summary>
+	/// Represents item for <see cref="TabBar"/>.
+	/// </summary>
+	public sealed partial class TabBarItem : ObservableObject, ITabBarItem, IDisposable
+	{
+		public Frame? ContentFrame { get; private set; }
+
+		public event EventHandler<TabBarItemParameter>? ContentChanged;
+
+		private bool _IsPinned;
+		public bool IsPinned
+		{
+			get => _IsPinned;
+			set
+			{
+				if (SetProperty(ref _IsPinned, value))
+				{
+					if (_NavigationArguments is not null)
+						_NavigationArguments.IsPinned = value;
+					OnPropertyChanged(nameof(IsClosable));
+					OnPropertyChanged(nameof(Header));
+				}
+			}
+		}
+
+		public bool IsClosable => !IsPinned;
+
+		private string? _TabColor;
+		public string? TabColor
+		{
+			get => _TabColor;
+			set
+			{
+				value = value is "Red" or "Orange" or "Green" or "Blue" or "Purple" ? value : null;
+				if (SetProperty(ref _TabColor, value))
+				{
+					if (_NavigationArguments is not null)
+						_NavigationArguments.TabColor = value;
+					OnPropertyChanged(nameof(TabColorBrush));
+				}
+			}
+		}
+
+		public SolidColorBrush TabColorBrush => CreateTabColorBrush(TabColor);
+
+		internal static SolidColorBrush CreateTabColorBrush(string? color) => new(color switch
+		{
+			"Red" => Windows.UI.Color.FromArgb(255, 224, 86, 86),
+			"Orange" => Windows.UI.Color.FromArgb(255, 232, 156, 49),
+			"Green" => Windows.UI.Color.FromArgb(255, 64, 170, 114),
+			"Blue" => Windows.UI.Color.FromArgb(255, 66, 153, 225),
+			"Purple" => Windows.UI.Color.FromArgb(255, 168, 110, 218),
+			_ => Microsoft.UI.Colors.Transparent,
+		});
+
+		private IconSource? _IconSource;
+		public IconSource? IconSource
+		{
+			get => _IconSource;
+			set => SetProperty(ref _IconSource, value);
+		}
+
+		private string? _CustomName;
+		public string? CustomName
+		{
+			get => _CustomName;
+			set
+			{
+				value = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+				if (SetProperty(ref _CustomName, value))
+				{
+					if (_NavigationArguments is not null)
+						_NavigationArguments.CustomName = value;
+					OnPropertyChanged(nameof(Header));
+				}
+			}
+		}
+
+		private string? _Header;
+		public string? Header
+		{
+			get => IsPinned && CustomName is not null ? CustomName : _Header;
+			set => SetProperty(ref _Header, value);
+		}
+
+		private string? _Description = null;
+		public string? Description
+		{
+			get => _Description;
+			set => SetProperty(ref _Description, value);
+		}
+
+		private string? _ToolTipText;
+		public string? ToolTipText
+		{
+			get => _ToolTipText;
+			set => SetProperty(ref _ToolTipText, value);
+		}
+
+		private bool _AllowStorageItemDrop;
+		public bool AllowStorageItemDrop
+		{
+			get => _AllowStorageItemDrop;
+			set => SetProperty(ref _AllowStorageItemDrop, value);
+		}
+
+		private TabBarItemParameter? _NavigationArguments;
+		public TabBarItemParameter? NavigationParameter
+		{
+			get => _NavigationArguments;
+			set
+			{
+				if (value != _NavigationArguments)
+				{
+					_NavigationArguments = value;
+					IsPinned = value?.IsPinned ?? false;
+					TabColor = value?.TabColor;
+					CustomName = value?.CustomName;
+					if (_NavigationArguments is not null)
+					{
+						ContentFrame?.Navigate(_NavigationArguments.InitialPageType, _NavigationArguments.NavigationParameter, new SuppressNavigationTransitionInfo());
+					}
+					else
+					{
+						if (ContentFrame is not null)
+							ContentFrame.Content = null;
+					}
+				}
+			}
+		}
+
+		public ITabBarItemContent? TabItemContent
+			=> ContentFrame?.Content as ITabBarItemContent;
+
+		public TabBarItem()
+		{
+			ContentFrame = new()
+			{
+				CacheSize = 0,
+				IsNavigationStackEnabled = false,
+			};
+
+			ContentFrame.Navigated += ContentFrame_Navigated;
+		}
+
+		public void Unload()
+		{
+			ContentChanged -= NavigationHelpers.Control_ContentChanged;
+
+			Dispose();
+		}
+
+		private void ContentFrame_Navigated(object sender, Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+		{
+			if (TabItemContent is not null)
+				TabItemContent.ContentChanged += TabItemContent_ContentChanged;
+		}
+
+		private void TabItemContent_ContentChanged(object? sender, TabBarItemParameter e)
+		{
+			e.IsPinned = IsPinned;
+			e.TabColor = TabColor;
+			e.CustomName = CustomName;
+			_NavigationArguments = e;
+			ContentChanged?.Invoke(this, e);
+		}
+
+		public void Dispose()
+		{
+			var content = TabItemContent;
+			if (content is not null)
+			{
+				content.ContentChanged -= TabItemContent_ContentChanged;
+				content.Dispose();
+			}
+
+			var frame = ContentFrame;
+			if (frame is not null)
+			{
+				frame.Navigated -= ContentFrame_Navigated;
+				frame.Content = null;
+				ContentFrame = null;
+				OnPropertyChanged(nameof(ContentFrame));
+			}
+		}
+	}
+}
