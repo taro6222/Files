@@ -6,6 +6,8 @@ In the event that we accidentally failed to list a required notice, please bring
 
 ## 7-Zip
 
+The portable distribution includes 7-Zip 26.00. Its version-specific notice, including the BSD 2-clause and BSD 3-clause notices, is provided in [7-Zip-26.00.txt](../docs/licenses/7-Zip-26.00.txt) in source and licenses/7-Zip-26.00.txt in the portable folder. The earlier notice below is retained for attribution history.
+
 **Source**: [https://sourceforge.net/projects/sevenzip/](https://sourceforge.net/projects/sevenzip/)
 
 ### License

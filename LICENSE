@@ -1,21 +1,28 @@
-MIT License
+Files Portable — license overview
 
-Copyright (c) 2026 changhoon
+Copyright (c) 2018 - present Files Community
+Copyright (c) 2026 changhoon (applicable modifications and original contributions)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This distribution contains code under multiple licenses. It is not offered
+as a choice between MIT and MPL for every file.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+- Files marked MIT retain the terms and notices in LICENSE-MIT.
+- Files marked MPL-2.0, including modifications to those files, are available
+  under Mozilla Public License 2.0; see LICENSE-MPL.
+- Original contributions by changhoon that contain no code under another
+  license and have no other license designation are offered under the MIT
+  terms in LICENSE-MIT, with changhoon as their copyright holder.
+- Third-party components retain their own licenses and copyright notices.
+  See THIRD-PARTY-NOTICES.md in the binary distribution, .github/NOTICE.md
+  in the repository, and the supplemental files in docs/licenses.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Do not remove or replace the applicable copyright and license notices.
+This overview does not relicense existing code or third-party components.
+
+Modified source: https://github.com/taro6222/Files
+Upstream project: https://github.com/files-community/Files
+Binary distributions include SOURCE-CODE.txt with the exact source revision.
+
+This is an independently maintained modified distribution, not an official
+Files Community release. No trademark rights or upstream endorsement are
+claimed. The applicable licenses' warranty disclaimers remain in effect.

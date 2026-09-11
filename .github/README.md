@@ -84,3 +84,5 @@ msbuild -restore src/Files.App/Files.App.csproj -t:Publish -p:Configuration=Rele
 원본 프로젝트는 [files-community/Files](https://github.com/files-community/Files)입니다. 이 수정 배포본의 개발과 이슈 관리는 `taro6222/Files`에서 진행합니다.
 
 라이선스는 [LICENSE](../LICENSE), [LICENSE-MIT](../LICENSE-MIT), [LICENSE-MPL](../LICENSE-MPL) 및 각 소스의 라이선스 표기를 확인하세요. 포함된 라이브러리와 리소스의 고지는 [THIRD PARTY NOTICES](NOTICE.md)에 있습니다.
+
+MIT와 MPL은 파일별로 적용되며 모든 코드에 대해 둘 중 하나를 선택하는 방식이 아닙니다. MPL 적용 파일의 수정 소스도 MPL 2.0으로 제공합니다. 배포 폴더에는 라이선스 원문, 제3자 고지와 정확한 소스 리비전을 담은 SOURCE-CODE.txt가 포함됩니다. 배포 전 고지 복사 방법과 외부 라이브러리 소스는 [배포 라이선스 안내](../docs/licenses/README.md)를 확인하세요.
