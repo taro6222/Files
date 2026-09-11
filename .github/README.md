@@ -1,51 +1,86 @@
-<p align="center">
-  <img alt="Files hero image" src="./assets/ReadmeHero.png" />
-</p>
+# Files Portable
 
-<p align="center">
-  <a style="text-decoration:none" href="https://files.community/">
-    <img src="https://img.shields.io/badge/Files-Website-F9B81F" alt="Files Website" /></a>
-  <a style="text-decoration:none" href="https://github.com/files-community/Files/actions/workflows/ci.yml">
-    <img src="https://github.com/files-community/Files/actions/workflows/ci.yml/badge.svg" alt="Files CI Status" /></a>
-  <a style="text-decoration:none" href="https://crowdin.com/project/files-app">
-    <img src="https://badges.crowdin.net/files-app/localized.svg" alt="Files Localization Status" /></a>
-  <a style="text-decoration:none" href="https://discord.gg/files">
-    <img src="https://img.shields.io/discord/725513575971684472?label=Discord&color=7289da" alt="Files Discord" /></a>
-</p>
+[Files Community의 Files](https://github.com/files-community/Files)를 기반으로 만든 Windows용 파일 관리자 수정 배포본입니다. 이 저장소는 등록 없는 포터블 실행, 분할 화면 작업, 사용자 지정 탭과 하단 명령 모음에 맞춰 개발하고 있습니다. 원본 프로젝트의 공식 배포본과는 별도로 관리됩니다.
 
-Files is a modern file manager that helps users organize their files and folders. Our mission with Files is to build the best file manager for Windows, and we’re proud to be building it out in the open so everyone can participate. User feedback helps shape the features we work on, & the bug reports on GitHub help to make Files more reliable. Built and maintained by the open-source community, Files features robust multitasking experiences, file tags, deep integrations, and an intuitive design.
+- **소스 및 문의:** [taro6222/Files](https://github.com/taro6222/Files)
+- **다운로드:** [최신 릴리즈](https://github.com/taro6222/Files/releases/latest)
+- **배포 대상:** Windows x64, 한국어·영어
 
-## Installing and running Files
+## 다운로드 및 실행
 
-Files is a community-driven project that depends on your support to grow and improve. Please consider purchasing Files through the Microsoft Store or supporting us on GitHub if you use the classic installer.
+1. 릴리즈에서 `Files-Portable-win-x64-날짜.zip`을 다운로드합니다. GitHub가 자동 제공하는 `Source code` 압축은 실행 파일이 아닙니다.
+2. ZIP 전체를 쓰기 가능한 폴더에 압축 해제합니다.
+3. `Files-Portable` 폴더의 `Files.exe`를 실행합니다. 설치나 Windows 앱 등록은 필요하지 않습니다.
 
-You can also use the preview version alongside the stable release to get early access to new features and improvements.
+EXE만 따로 이동하지 마세요. DLL, PRI, XBF 등 부속 파일은 실행에 필요하므로 폴더 전체를 함께 보관해야 합니다. 릴리즈에는 ZIP 무결성 확인용 `SHA256SUMS.txt`도 제공합니다.
 
-<p align="left">
-  <!-- Store Badge -->
-  <a style="text-decoration:none" href="https://apps.microsoft.com/detail/9NGHP3DX8HDX?launch=true&mode=full">
-    <picture>
-      <source media="(prefers-color-scheme: light)" srcset="./assets/StoreBadge-dark.png" height="80" />
-      <img src="./assets/StoreBadge-light.png" height="80" /></picture></a>
-  &ensp;
-  <!-- Classic Installer Badge -->
-  <a style="text-decoration:none" href="https://files.community/download">
-    <picture>
-      <source media="(prefers-color-scheme: light)" srcset="./assets/ClassicInstallerBadge-dark.png" height="80" />
-      <img src="./assets/ClassicInstallerBadge-light.png" height="80" /></picture></a>
-</p>
+프로젝트의 최소 Windows 대상은 Windows 10 2004(빌드 19041)입니다. 배포 파일은 x64용이며, 모든 지원 Windows 버전에서 실제 동작을 검증한 것은 아닙니다.
 
-## Building from source
+## 설정 보관과 업데이트
 
-Instructions for building the source code can be found on our [documentation site](https://files.community/docs/contributing/building-from-source).
+설정, 즐겨찾기, 탭 상태, 태그, 폴더별 레이아웃 및 캐시는 실행 폴더의 `Data`에 저장됩니다. 배포 ZIP에는 개발자의 개인 `Data`가 포함되지 않습니다.
 
+- **이동:** 앱을 종료한 뒤 `Data`를 포함한 실행 폴더 전체를 복사합니다.
+- **업데이트:** 앱을 종료하고 기존 `Data`를 백업합니다. 새 ZIP을 별도 폴더에 해제한 뒤 기존 `Data`를 새 실행 폴더로 복사합니다.
+- **설정 초기화:** 앱을 종료하고 `Data`를 다른 위치에 백업한 뒤 실행하면 새 설정으로 시작합니다.
 
-## Contributing to Files
+## 주요 기능
 
-Want to contribute to this project? Let us know with an [issue](https://github.com/files-community/Files/issues) that communicates your intent to create a [pull request](https://github.com/files-community/Files/pulls). Also, view our [contributing guidelines](https://github.com/files-community/Files/blob/main/.github/CONTRIBUTING.md) to make sure you're up to date on the coding conventions.
+### 파일 표시와 우클릭 메뉴
 
-Looking for a place to start? Check out the [task board](https://github.com/orgs/files-community/projects/3/views/2), where you can sort tasks by size and priority.
+- 카드 크기를 기존보다 작은 단계가 포함된 총 5단계로 조절합니다.
+- 카드 하단에 확장명 표시 설정과 관계없이 파일 또는 폴더 종류를 표시합니다.
+- 우클릭의 **추가 옵션 표시** 단계를 첫 메뉴에 통합했습니다. 실제 하위 메뉴는 유지됩니다.
+- 속성 버튼 다음 구분선과 별 버튼에서 현재 폴더를 즐겨찾기에 추가·제거하거나 저장된 폴더로 이동합니다.
 
-## Screenshots
+### 분할 화면과 하단 명령 모음
 
-![Files](./assets/FilesScreenshot.png)
+각 화면 하단에 선택 항목과 전체 항목의 용량, 파일 수, 폴더 수를 표시합니다. 용량은 현재 폴더의 파일 합계이며 하위 폴더를 재귀적으로 합산하지 않습니다.
+
+| 기본 단축키 | 동작 |
+| --- | --- |
+| F3 | 보기 |
+| F4 | 메모장으로 편집 |
+| F5 | 복사 |
+| F6 | 이동 |
+| F7 | 새 폴더 |
+| F8 | 삭제 |
+| Alt+F4 | 닫기 |
+
+분할 화면에서 복사·이동은 선택한 화면의 항목을 반대편 화면의 현재 폴더로 보냅니다. 단일 화면에서는 대상 폴더를 선택합니다. 복사 확인 창의 취소 처리를 수정했습니다.
+
+**설정 → 일반 → 하단 명령 모음** 또는 하단 톱니바퀴에서 버튼 표시, 동작, 순서와 단축키를 변경할 수 있습니다. 기존 사용자 단축키와 충돌하면 기존 단축키가 우선하며 하단 버튼에서는 충돌하는 키 표시를 생략합니다.
+
+### 탭과 설정
+
+- 탭 우클릭에서 고정·해제 및 색상을 지정합니다. 색상 선택은 색상 견본으로 표시됩니다.
+- 고정 탭은 일반 닫기 동작에서 보호됩니다.
+- 고정 탭의 **고정 탭 이름 변경**에서 표시 이름을 저장하거나 기본 이름으로 복원합니다. 실제 폴더 이름은 변경하지 않습니다.
+- 탭의 고정 상태, 색상과 지정한 이름은 저장되어 재실행 시 복원됩니다.
+- 앱 전체 설정은 별도 팝업 창으로 열립니다. 이미 열려 있으면 해당 설정 창을 활성화합니다.
+
+## 포터블 배포 범위와 검증 상태
+
+포터블 모드에서는 기본 탐색기·파일 대화상자 교체, Windows 자동 시작 등록 및 시작 메뉴 고정을 제공하지 않습니다. 설치 패키지는 현재 릴리즈에 포함하지 않습니다.
+
+현재 배포본은 Release x64 NativeAOT 빌드 성공과 배포 파일·ZIP 내부 파일의 SHA-256 일치를 확인했습니다. 기존 AOT 분석 경고가 남아 있으며, 전체 UI 및 파일 작업에 대한 실행 검증 완료를 의미하지 않습니다. 문제는 [이 저장소의 이슈](https://github.com/taro6222/Files/issues)에 재현 절차와 함께 남겨 주세요.
+
+## 소스 빌드
+
+.NET 10 SDK(`global.json` 기준 10.0.102), Windows SDK 및 C++ 빌드 도구가 포함된 Visual Studio 빌드 환경이 필요합니다. 개발에 사용한 환경은 Visual Studio 18 Build Tools이며, Windows 대상 버전은 10.0.26100입니다.
+
+x64 개발자 PowerShell에서 저장소 루트로 이동해 실행합니다.
+
+```powershell
+msbuild -restore src/Files.App/Files.App.csproj -t:Publish -p:Configuration=Release -p:Platform=x64 -p:FilesPortable=true -p:PublishDir=C:\FilesPublish\ -v:quiet -clp:ErrorsOnly
+```
+
+`PublishDir`는 원하는 별도 출력 폴더로 바꾸세요. 실행 중인 앱 폴더에 직접 게시하지 말고 앱을 종료한 뒤 결과물을 교체하세요. 배포 ZIP을 만들 때는 `Data`와 디버그 심볼(`.pdb`)을 제외하고 실행 리소스는 유지합니다.
+
+저장소 경로에 `#`가 있으면 WinRT 빌드 도구에서 문제가 발생할 수 있습니다. 해당 문자가 없는 경로에 체크아웃하거나 사용하지 않는 드라이브 문자로 `subst` 매핑한 경로에서 빌드하세요.
+
+## 원본 프로젝트와 라이선스
+
+원본 프로젝트는 [files-community/Files](https://github.com/files-community/Files)입니다. 이 수정 배포본의 개발과 이슈 관리는 `taro6222/Files`에서 진행합니다.
+
+라이선스는 [LICENSE](../LICENSE), [LICENSE-MIT](../LICENSE-MIT), [LICENSE-MPL](../LICENSE-MPL) 및 각 소스의 라이선스 표기를 확인하세요. 포함된 라이브러리와 리소스의 고지는 [THIRD PARTY NOTICES](NOTICE.md)에 있습니다.
