@@ -110,8 +110,18 @@ namespace Files.App.UserControls
 
 		private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
-			UpdatePaneStatistics();
-			QueueRemeasure();
+			if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(StatusBarViewModel.PaneStatistics))
+				UpdatePaneStatistics();
+
+			if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName is
+				nameof(StatusBarViewModel.PaneStatistics) or
+				nameof(StatusBarViewModel.DirectoryItemCount) or
+				nameof(StatusBarViewModel.StatusInfo) or
+				nameof(StatusBarViewModel.GitBranchDisplayName) or
+				nameof(StatusBarViewModel.ShowOpenInIDEButton) or
+				nameof(StatusBarViewModel.IsZipEncodingSelectorVisible) or
+				nameof(StatusBarViewModel.SelectedZipEncoding))
+				QueueRemeasure();
 		}
 
 		private void UpdatePaneStatistics()

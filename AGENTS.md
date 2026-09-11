@@ -125,3 +125,10 @@ Code Quality: Add source-generated settings serialization
 ```
 
 For the PR body, follow `./.github/PULL_REQUEST_TEMPLATE.md`.
+
+## Versioned portable releases
+
+- Prefix new commit messages with the release version, for example `[v4.2.32] Reduce startup work`.
+- Keep the app's portable display version, Package.appxmanifest identity version, and Files.App.csproj file/assembly version aligned. Use three components for release tags (`v4.2.32`) and four for Windows versions (`4.2.32.0`).
+- Name GitHub releases `Files Portable vX.Y.Z` and portable assets `Files-Portable-vX.Y.Z-win-x64.zip`.
+- Run Add-PortableNotices.ps1 with the actual source commit and release tag before packaging. Include the notices, component source assets and checksums; exclude Data and PDB files.

@@ -977,36 +977,42 @@ namespace Files.App.Views.Layouts
 
 		public void UpdateSelectionSize()
 		{
-			var allItems = SafetyExtensions.IgnoreExceptions(GetAllItems, App.Logger)?.ToList();
-			if (allItems is not null)
-			{
-				var selection = selectedItems?.ToList() ?? [];
-				var selectedFiles = selection.Where(item => !item.IsFolder).ToList();
-				var allFiles = allItems.Where(item => !item.IsFolder).ToList();
-				StatusBarViewModel.PaneStatistics = Strings.BottomPaneStatistics.GetLocalizedFormatResource(
-					selectedFiles.Sum(item => (decimal)item.FileSizeBytes).ToSizeString(),
-					allFiles.Sum(item => (decimal)item.FileSizeBytes).ToSizeString(),
-					selectedFiles.Count, allFiles.Count,
-					selection.Count(item => item.IsFolder), allItems.Count(item => item.IsFolder));
-			}
-			var items = (selectedItems?.Any() ?? false) ? selectedItems : SafetyExtensions.IgnoreExceptions(GetAllItems, App.Logger);
-			if (items is null)
+			var allItems = SafetyExtensions.IgnoreExceptions(GetAllItems, App.Logger);
+			if (allItems is null)
 				return;
 
-			var isSizeKnown = !items.Any(item => string.IsNullOrEmpty(item.FileSize));
-			if (isSizeKnown)
-			{
-				decimal size = items.Sum(item => item.FileSizeBytes);
-				SelectedItemsPropertiesViewModel.ItemSizeBytes = size;
-				SelectedItemsPropertiesViewModel.ItemSize = size.ToSizeString();
-			}
-			else
-			{
-				SelectedItemsPropertiesViewModel.ItemSizeBytes = 0;
-				SelectedItemsPropertiesViewModel.ItemSize = string.Empty;
-			}
+			var totals = Summarize(allItems);
+			var selection = Summarize(selectedItems ?? []);
+			StatusBarViewModel.PaneStatistics = Strings.BottomPaneStatistics.GetLocalizedFormatResource(
+				selection.FileSize.ToSizeString(), totals.FileSize.ToSizeString(),
+				selection.Files, totals.Files, selection.Folders, totals.Folders);
 
-			SelectedItemsPropertiesViewModel.ItemSizeVisibility = isSizeKnown;
+			var displayed = selection.Files + selection.Folders > 0 ? selection : totals;
+			SelectedItemsPropertiesViewModel.ItemSizeBytes = displayed.SizeKnown ? displayed.ItemSize : 0;
+			SelectedItemsPropertiesViewModel.ItemSize = displayed.SizeKnown ? displayed.ItemSize.ToSizeString() : string.Empty;
+			SelectedItemsPropertiesViewModel.ItemSizeVisibility = displayed.SizeKnown;
+
+			static (decimal FileSize, decimal ItemSize, int Files, int Folders, bool SizeKnown) Summarize(IEnumerable<ListedItem> items)
+			{
+				decimal fileSize = 0;
+				decimal itemSize = 0;
+				int files = 0;
+				int folders = 0;
+				bool sizeKnown = true;
+				foreach (var item in items)
+				{
+					if (item.IsFolder)
+						folders++;
+					else
+					{
+						files++;
+						fileSize += item.FileSizeBytes;
+					}
+					itemSize += item.FileSizeBytes;
+					sizeKnown &= !string.IsNullOrEmpty(item.FileSize);
+				}
+				return (fileSize, itemSize, files, folders, sizeKnown);
+			}
 		}
 
 		protected virtual void Page_CharacterReceived(UIElement sender, CharacterReceivedRoutedEventArgs args)

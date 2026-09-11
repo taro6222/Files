@@ -21,7 +21,7 @@ public static class AppEnvironmentInfo
 	public static string InstanceKey { get; } = IsPortable
 		? "Files-Portable-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Path.GetFullPath(AppContext.BaseDirectory).ToUpperInvariant())))
 		: $"Files-{AppLifecycleHelper.AppEnvironment}-Instance";
-	public static PackageVersion Version => package?.Id.Version ?? new PackageVersion(4, 2, 31, 0);
+	public static PackageVersion Version => package?.Id.Version ?? new PackageVersion(4, 2, 32, 0);
 
 	private static Package? GetPackage()
 	{

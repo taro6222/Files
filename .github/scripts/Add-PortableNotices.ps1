@@ -6,7 +6,10 @@ param(
 	[string]$BuildDirectory,
 	[Parameter(Mandatory)]
 	[ValidatePattern('^[0-9a-fA-F]{40}$')]
-	[string]$SourceRevision
+	[string]$SourceRevision,
+	[Parameter(Mandatory)]
+	[ValidatePattern('^[A-Za-z0-9._-]+$')]
+	[string]$ReleaseTag
 )
 
 $ErrorActionPreference = 'Stop'
@@ -49,7 +52,7 @@ Third-party notices: THIRD-PARTY-NOTICES.md and licenses/
 SevenZipSharp 1.0.3 source:
 https://github.com/files-community/SevenZipSharp/tree/9725bda53e1ee018b39a51c268a90c4905915926
 These component source archives are also provided as assets of release:
-https://github.com/taro6222/Files/releases/tag/portable-2026.09.11
+https://github.com/taro6222/Files/releases/tag/$ReleaseTag
 
 The application source includes its project files and build instructions.
 SevenZipSharp is compiled into the NativeAOT executable. To use a modified

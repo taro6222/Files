@@ -8,7 +8,7 @@
 
 ## 다운로드 및 실행
 
-1. 릴리즈에서 `Files-Portable-win-x64-날짜.zip`을 다운로드합니다. GitHub가 자동 제공하는 `Source code` 압축은 실행 파일이 아닙니다.
+1. 릴리즈에서 `Files-Portable-v버전-win-x64.zip`을 다운로드합니다. GitHub가 자동 제공하는 `Source code` 압축은 실행 파일이 아닙니다.
 2. ZIP 전체를 쓰기 가능한 폴더에 압축 해제합니다.
 3. `Files-Portable` 폴더의 `Files.exe`를 실행합니다. 설치나 Windows 앱 등록은 필요하지 않습니다.
 
@@ -86,3 +86,14 @@ msbuild -restore src/Files.App/Files.App.csproj -t:Publish -p:Configuration=Rele
 라이선스는 [LICENSE](../LICENSE), [LICENSE-MIT](../LICENSE-MIT), [LICENSE-MPL](../LICENSE-MPL) 및 각 소스의 라이선스 표기를 확인하세요. 포함된 라이브러리와 리소스의 고지는 [THIRD PARTY NOTICES](NOTICE.md)에 있습니다.
 
 MIT와 MPL은 파일별로 적용되며 모든 코드에 대해 둘 중 하나를 선택하는 방식이 아닙니다. MPL 적용 파일의 수정 소스도 MPL 2.0으로 제공합니다. 배포 폴더에는 라이선스 원문, 제3자 고지와 정확한 소스 리비전을 담은 SOURCE-CODE.txt가 포함됩니다. 배포 전 고지 복사 방법과 외부 라이브러리 소스는 [배포 라이선스 안내](../docs/licenses/README.md)를 확인하세요.
+
+## 버전과 릴리즈
+
+현재 버전은 **4.2.32**(Windows 파일/패키지 버전 **4.2.32.0**)입니다.
+
+- 커밋 메시지: `[v4.2.32] 설명`
+- 릴리즈 태그와 제목: `v4.2.32`, `Files Portable v4.2.32`
+- 배포 ZIP: `Files-Portable-v4.2.32-win-x64.zip`
+- 릴리즈마다 실제 빌드 소스 리비전, 라이선스 고지와 SHA-256 체크섬을 함께 제공합니다.
+
+이번 버전은 숨긴 사이드바 기능의 시작 작업을 생략하고, 하단 통계의 중복 순회·임시 목록과 불필요한 상태줄 재측정을 줄였습니다. 전체 목록 통계 캐시와 포터블 설정 캐시는 아직 적용하지 않았습니다. 상세 변경은 [CHANGELOG](../CHANGELOG.md)를 확인하세요.

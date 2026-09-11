@@ -122,10 +122,10 @@ namespace Files.App.Helpers
 			{
 				await Task.WhenAll(
 					App.QuickAccessManager.InitializeAsync(),
-					OptionalTaskAsync(CloudDrivesManager.UpdateDrivesAsync(), generalSettingsService.ShowCloudDrivesSection),
+					OptionalTaskAsync(CloudDrivesManager.UpdateDrivesAsync, generalSettingsService.ShowCloudDrivesSection),
 					App.LibraryManager.UpdateLibrariesAsync(),
-					OptionalTaskAsync(WSLDistroManager.UpdateDrivesAsync(), generalSettingsService.ShowWslSection),
-					OptionalTaskAsync(App.FileTagsManager.UpdateFileTagsAsync(), generalSettingsService.ShowFileTagsSection),
+					OptionalTaskAsync(WSLDistroManager.UpdateDrivesAsync, generalSettingsService.ShowWslSection),
+					OptionalTaskAsync(App.FileTagsManager.UpdateFileTagsAsync, generalSettingsService.ShowFileTagsSection),
 					jumpListService.InitializeAsync()
 				);
 
@@ -146,10 +146,10 @@ namespace Files.App.Helpers
 				await PeriodicallyCheckForUpdatesAsync();
 			});
 
-			static Task OptionalTaskAsync(Task task, bool condition)
+			static Task OptionalTaskAsync(Func<Task> taskFactory, bool condition)
 			{
 				if (condition)
-					return task;
+					return taskFactory();
 
 				return Task.CompletedTask;
 			}

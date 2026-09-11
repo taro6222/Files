@@ -7,6 +7,9 @@
         <TargetFramework>$(WindowsTargetFramework)</TargetFramework>
         <OutputType>WinExe</OutputType>
         <AssemblyName>Files</AssemblyName>
+        <Version>4.2.32</Version>
+        <AssemblyVersion>4.2.32.0</AssemblyVersion>
+        <FileVersion>4.2.32.0</FileVersion>
         <DefaultLanguage>en-US</DefaultLanguage>
         <WarningsAsErrors>$(WarningsAsErrors);CsWinRT1028</WarningsAsErrors>
         <SatelliteResourceLanguages>en;en-US;ko;ko-KR</SatelliteResourceLanguages>

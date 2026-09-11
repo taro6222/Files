@@ -26,7 +26,7 @@ SevenZipSharp는 NativeAOT 실행 파일에 포함됩니다. 변경한 라이브
 저장소 루트의 PowerShell에서 빌드 결과에 다음 스크립트를 실행합니다. `SourceRevision`에는 실제 실행 파일을 빌드한 소스의 전체 커밋 해시를 지정해야 합니다.
 
 ```powershell
-./.github/scripts/Add-PortableNotices.ps1 -BuildDirectory ./build -SourceRevision <전체-커밋-해시>
+./.github/scripts/Add-PortableNotices.ps1 -BuildDirectory ./build -SourceRevision <전체-커밋-해시> -ReleaseTag <릴리즈-태그>
 ```
 
 그다음 `Data` 및 디버그 심볼을 제외해 압축합니다. 위 고지와 소스 안내를 ZIP에서도 유지하세요. 라이브러리 버전을 변경할 때에는 해당 고지·소스 주소와 릴리즈의 소스 첨부 파일도 갱신해야 합니다.
