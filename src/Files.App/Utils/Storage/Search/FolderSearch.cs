@@ -637,19 +637,18 @@ namespace Files.App.Utils.Storage
 					if (item is null)
 						continue;
 
-					bool raiseTick;
-
+					// The tick handler snapshots the result list synchronously before its first await, so raising
+					// the event has to be serialized against the inserts of the other directory workers.
 					lock (resultsLock)
 					{
 						if (results.Count >= maxItemCount)
 							return;
 
 						results.Add(item);
-						raiseTick = results.Count == 32 || results.Count % 300 == 0;
-					}
 
-					if (raiseTick && !token.IsCancellationRequested)
-						SearchTick?.Invoke(this, EventArgs.Empty);
+						if ((results.Count == 32 || results.Count % 300 == 0) && !token.IsCancellationRequested)
+							SearchTick?.Invoke(this, EventArgs.Empty);
+					}
 				}
 				while (PInvoke.FindNextFile(findHandle, out findData));
 			}
