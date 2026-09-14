@@ -400,3 +400,4 @@ ShellExecuteW
 SBSP_SAMEBROWSER
 SBSP_ABSOLUTE
 K32EmptyWorkingSet
+PathMatchSpec

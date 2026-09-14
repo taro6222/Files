@@ -3,6 +3,7 @@
 
 using Files.Shared.Helpers;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text.RegularExpressions;
 using Windows.Storage;
@@ -415,87 +416,77 @@ namespace Files.App.Utils.Storage
 
 		private async Task SearchWithWin32Async(string folder, bool hiddenOnly, uint maxItemCount, IList<ListedItem> results, CancellationToken token)
 		{
-			//var sampler = new IntervalSampler(500);
 			if (token.IsCancellationRequested)
 				return;
 
-			(FindCloseSafeHandle? hFile, WIN32_FIND_DATAW findData) = await Task.Run(() =>
-			{
-				WIN32_FIND_DATAW findDataTsk = default;
-				FindCloseSafeHandle hFileTsk;
-				unsafe
-				{
-					hFileTsk = PInvoke.FindFirstFileEx($"{folder}\\*{QueryWithWildcard}", FINDEX_INFO_LEVELS.FindExInfoBasic,
-						&findDataTsk, FINDEX_SEARCH_OPS.FindExSearchNameMatch, FIND_FIRST_EX_FLAGS.FIND_FIRST_EX_LARGE_FETCH);
-				}
-				return (hFileTsk, findDataTsk);
-			}).WithTimeoutAsync(TimeSpan.FromSeconds(5));
-			if (token.IsCancellationRequested)
-			{
-				hFile?.Dispose();
-				return;
-			}
+			var foldersSettingsService = UserSettingsService.FoldersSettingsService;
+			var showHiddenItems = foldersSettingsService.ShowHiddenItems;
+			var showProtectedSystemFiles = foldersSettingsService.ShowProtectedSystemFiles;
+			var showDotFiles = foldersSettingsService.ShowDotFiles;
 
+			// Letting FindFirstFileEx filter the names forced a second unfiltered pass per directory to collect
+			// the sub directories. One unfiltered pass that matches in process halves the directory enumerations.
+			var matchPattern = $"*{QueryWithWildcard}";
+
+			var resultsLock = new object();
 			var pendingShortcuts = new List<(string Path, WIN32_FIND_DATAW FindData)>();
+			var maxParallelism = Math.Clamp(Environment.ProcessorCount, 1, 8);
 
-			if (hFile is { IsInvalid: false } findHandle)
+			await Task.Run(() =>
 			{
-				// Always enter the delegate so the find handle is disposed; cancellation is checked before mutations.
-				await Task.Run(() =>
+				// Breadth first so the directories of a level are enumerated in parallel. The previous depth first
+				// recursion awaited one directory at a time, which kept the disk queue depth at one.
+				var currentLevel = new List<string>(1) { folder };
+
+				while (currentLevel.Count != 0 && !token.IsCancellationRequested)
 				{
-					using (findHandle)
+					lock (resultsLock)
 					{
-						var hasNextFile = false;
-						do
-						{
-							if (token.IsCancellationRequested)
-								break;
-
-							if (results.Count >= maxItemCount)
-								break;
-
-							string fileName = findData.cFileName.ToString();
-							var itemPath = Path.Combine(folder, fileName);
-							var isSystem = ((FileAttributes)findData.dwFileAttributes & FileAttributes.System) == FileAttributes.System;
-							var isHidden = ((FileAttributes)findData.dwFileAttributes & FileAttributes.Hidden) == FileAttributes.Hidden;
-							var startWithDot = fileName.StartsWith('.');
-							var isShortcut = FileExtensionHelpers.IsShortcutOrUrlFile(fileName);
-
-							bool shouldBeListed = (hiddenOnly ?
-								(!isHidden && isShortcut) || (isHidden && UserSettingsService.FoldersSettingsService.ShowHiddenItems && (!isSystem || UserSettingsService.FoldersSettingsService.ShowProtectedSystemFiles)) :
-								!isHidden || (UserSettingsService.FoldersSettingsService.ShowHiddenItems && (!isSystem || UserSettingsService.FoldersSettingsService.ShowProtectedSystemFiles))) &&
-								(!startWithDot || UserSettingsService.FoldersSettingsService.ShowDotFiles);
-
-							if (shouldBeListed)
-							{
-								if (isShortcut)
-								{
-									pendingShortcuts.Add((itemPath, findData));
-								}
-								else
-								{
-									var item = GetListedItemAsync(itemPath, findData);
-									if (item is not null && !token.IsCancellationRequested)
-										results.Add(item);
-								}
-							}
-
-							if (!token.IsCancellationRequested && (results.Count == 32 || results.Count % 300 == 0 /*|| sampler.CheckNow()*/))
-								SearchTick?.Invoke(this, EventArgs.Empty);
-							hasNextFile = PInvoke.FindNextFile(findHandle, out findData);
-						} while (hasNextFile);
+						if (results.Count >= maxItemCount)
+							break;
 					}
-				});
-			}
-			else
+
+					var nextLevel = new ConcurrentBag<string>();
+
+					Parallel.ForEach(
+						currentLevel,
+						new ParallelOptions { MaxDegreeOfParallelism = maxParallelism },
+						directory => EnumerateDirectoryForSearch(
+							directory,
+							matchPattern,
+							hiddenOnly,
+							maxItemCount,
+							showHiddenItems,
+							showProtectedSystemFiles,
+							showDotFiles,
+							results,
+							resultsLock,
+							pendingShortcuts,
+							nextLevel,
+							token));
+
+					currentLevel = new List<string>(nextLevel);
+				}
+			});
+
+			if (token.IsCancellationRequested)
+				return;
+
+			// Shortcuts are deduplicated against every item already listed, including the ones the indexer added.
+			var listedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			foreach (var listed in results)
 			{
-				hFile?.Dispose();
+				if (listed.ItemPath is not null)
+					listedPaths.Add(listed.ItemPath);
 			}
 
 			foreach (var (itemPath, itemFindData) in pendingShortcuts)
 			{
 				if (results.Count >= maxItemCount || token.IsCancellationRequested)
 					break;
+
+				if (!listedPaths.Add(itemPath))
+					continue;
 
 				string shortcutFileName = itemFindData.cFileName.ToString();
 				var isUrl = FileExtensionHelpers.IsWebLinkFile(shortcutFileName);
@@ -523,9 +514,6 @@ namespace Files.App.Utils.Storage
 					FileSizeBytes = fileSize,
 					IsUrl = isUrl,
 				};
-
-				if (results.Any(r => string.Equals(r.ItemPath, itemPath, StringComparison.OrdinalIgnoreCase)))
-					continue;
 
 				if (MaxItemCount == 0)
 				{
@@ -566,62 +554,104 @@ namespace Files.App.Utils.Storage
 					SearchTick?.Invoke(this, EventArgs.Empty);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Enumerates a single directory once, collecting both the search matches and the sub directories to visit next.
+		/// </summary>
+		private void EnumerateDirectoryForSearch(
+			string directory,
+			string matchPattern,
+			bool hiddenOnly,
+			uint maxItemCount,
+			bool showHiddenItems,
+			bool showProtectedSystemFiles,
+			bool showDotFiles,
+			IList<ListedItem> results,
+			object resultsLock,
+			List<(string Path, WIN32_FIND_DATAW FindData)> pendingShortcuts,
+			ConcurrentBag<string> subDirectories,
+			CancellationToken token)
+		{
 			if (token.IsCancellationRequested)
 				return;
 
-			(FindCloseSafeHandle? hSubDir, WIN32_FIND_DATAW subDirData) = await Task.Run(() =>
+			WIN32_FIND_DATAW findData = default;
+			FindCloseSafeHandle findHandle;
+
+			unsafe
 			{
-				WIN32_FIND_DATAW subDirDataTsk = default;
-				FindCloseSafeHandle hSubDirTsk;
-				unsafe
-				{
-					hSubDirTsk = PInvoke.FindFirstFileEx($"{folder}\\*", FINDEX_INFO_LEVELS.FindExInfoBasic,
-						&subDirDataTsk, FINDEX_SEARCH_OPS.FindExSearchNameMatch, FIND_FIRST_EX_FLAGS.FIND_FIRST_EX_LARGE_FETCH);
-				}
-				return (hSubDirTsk, subDirDataTsk);
-			}).WithTimeoutAsync(TimeSpan.FromSeconds(5));
-			if (token.IsCancellationRequested)
+				findHandle = PInvoke.FindFirstFileEx($"{directory}\\*", FINDEX_INFO_LEVELS.FindExInfoBasic,
+					&findData, FINDEX_SEARCH_OPS.FindExSearchNameMatch, FIND_FIRST_EX_FLAGS.FIND_FIRST_EX_LARGE_FETCH);
+			}
+
+			// Unreadable directories are skipped; a denied sub tree must not abort the rest of the search.
+			if (findHandle is null || findHandle.IsInvalid)
 			{
-				hSubDir?.Dispose();
+				findHandle?.Dispose();
 				return;
 			}
 
-			if (hSubDir is { IsInvalid: false } subDirectoryHandle)
+			using (findHandle)
 			{
-				var subDirectories = new List<string>();
-
-				// Always enter the delegate so the find handle is disposed; cancellation is checked before mutations.
-				await Task.Run(() =>
+				do
 				{
-					using (subDirectoryHandle)
+					if (token.IsCancellationRequested)
+						return;
+
+					string fileName = findData.cFileName.ToString();
+					if (fileName is "." or "..")
+						continue;
+
+					var attributes = (FileAttributes)findData.dwFileAttributes;
+					var itemPath = Path.Combine(directory, fileName);
+
+					if ((attributes & FileAttributes.Directory) == FileAttributes.Directory)
+						subDirectories.Add(itemPath);
+
+					if (!PInvoke.PathMatchSpec(fileName, matchPattern))
+						continue;
+
+					var isSystem = (attributes & FileAttributes.System) == FileAttributes.System;
+					var isHidden = (attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
+					var startWithDot = fileName.StartsWith('.');
+					var isShortcut = FileExtensionHelpers.IsShortcutOrUrlFile(fileName);
+
+					bool shouldBeListed = (hiddenOnly ?
+						(!isHidden && isShortcut) || (isHidden && showHiddenItems && (!isSystem || showProtectedSystemFiles)) :
+						!isHidden || (showHiddenItems && (!isSystem || showProtectedSystemFiles))) &&
+						(!startWithDot || showDotFiles);
+
+					if (!shouldBeListed)
+						continue;
+
+					if (isShortcut)
 					{
-						var hasNextDir = false;
-						do
-						{
-							if (token.IsCancellationRequested)
-								break;
+						lock (resultsLock)
+							pendingShortcuts.Add((itemPath, findData));
 
-							string subDirName = subDirData.cFileName.ToString();
-							var isDirectory = ((FileAttributes)subDirData.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory;
-							if (isDirectory && subDirName != "." && subDirName != "..")
-								subDirectories.Add(Path.Combine(folder, subDirName));
-
-							hasNextDir = PInvoke.FindNextFile(subDirectoryHandle, out subDirData);
-						} while (hasNextDir);
+						continue;
 					}
-				});
 
-				foreach (var subDir in subDirectories)
-				{
-					if (results.Count >= maxItemCount || token.IsCancellationRequested)
-						break;
+					var item = GetListedItemAsync(itemPath, findData);
+					if (item is null)
+						continue;
 
-					await SearchWithWin32Async(subDir, hiddenOnly, maxItemCount - (uint)results.Count, results, token);
+					bool raiseTick;
+
+					lock (resultsLock)
+					{
+						if (results.Count >= maxItemCount)
+							return;
+
+						results.Add(item);
+						raiseTick = results.Count == 32 || results.Count % 300 == 0;
+					}
+
+					if (raiseTick && !token.IsCancellationRequested)
+						SearchTick?.Invoke(this, EventArgs.Empty);
 				}
-			}
-			else
-			{
-				hSubDir?.Dispose();
+				while (PInvoke.FindNextFile(findHandle, out findData));
 			}
 		}
 
